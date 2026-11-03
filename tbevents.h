@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 tbcalendarplugin contributors
+// SPDX-License-Identifier: GPL-3.0-only
+
 #pragma once
 
 #include <QDate>
@@ -11,18 +14,18 @@
 #include <CalendarEvents/CalendarEventsPlugin>
 #include <KCalendarCore/MemoryCalendar>
 
-// Liest die Termine, die Thunderbird in calendar-data/cache.sqlite ablegt, und stellt sie
-// für beliebige Datumsbereiche bereit. Alle Zugriffe sind lesend; die Datenbank wird vorher
-// kopiert, damit Thunderbird nicht gestört wird.
+// Reads the events Thunderbird keeps in calendar-data/cache.sqlite and serves them for
+// arbitrary date ranges. Access is read-only: the database is copied first so Thunderbird
+// is never disturbed.
 class TbEvents
 {
 public:
     TbEvents();
 
-    // Blockierend, thread-sicher. Lädt die Datenbank neu, wenn Thunderbird sie verändert hat.
+    // Blocking and thread-safe. Reloads the database when Thunderbird has changed it.
     QMultiHash<QDate, CalendarEvents::EventData> eventsFor(const QDate &start, const QDate &end);
 
-    // Pfad der cache.sqlite des zuletzt benutzten Thunderbird-Profils, leer wenn keiner da ist.
+    // Path of the cache.sqlite of the most recently used Thunderbird profile, empty if none.
     static QString findCachePath();
 
 private:

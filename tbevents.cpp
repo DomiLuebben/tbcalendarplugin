@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 tbcalendarplugin contributors
+// SPDX-License-Identifier: GPL-3.0-only
+
 #include "tbevents.h"
 
 #include <QDir>
@@ -30,8 +33,8 @@ QString icsEscape(QString s)
     return s;
 }
 
-// Thunderbird speichert Zeitpunkte als Mikrosekunden seit 1970 (UTC); "floating" und
-// ganztägige Termine sind als UTC-Wanduhrzeit abgelegt.
+// Thunderbird stores instants as microseconds since 1970 (UTC); "floating" and all-day
+// events are stored as UTC wall-clock time.
 QString dtLine(const QString &name, qint64 us, const QString &tz, bool allDay)
 {
     const QDateTime utc = QDateTime::fromMSecsSinceEpoch(us / 1000, QTimeZone::utc());
@@ -52,8 +55,8 @@ QString dtLine(const QString &name, qint64 us, const QString &tz, bool allDay)
     return name + QStringLiteral(";TZID=") + tz + QLatin1Char(':') + utc.toTimeZone(zone).toString(fmt);
 }
 
-// Google/Booking-Termine aus E-Mails tragen nur einen langen Hinweistext samt Links als
-// Beschreibung; andere Beschreibungen sind teils mehrere KB lang. Für die Uhr reicht ein Auszug.
+// Google events created from e-mails (e.g. Booking) only carry a long notice with links as
+// description, and other descriptions can be several KB long. An excerpt is enough for the clock.
 QString cleanDescription(QString d)
 {
     if (d.contains(QLatin1String("aus einer E-Mail erstellt")) || d.contains(QLatin1String("automatisch erstellten Terminen"))
@@ -134,8 +137,8 @@ QHash<QString, TbEvents::CalendarInfo> TbEvents::readCalendarInfos(const QString
         CalendarInfo info;
         info.name = p.value(QStringLiteral("name"));
         info.color = p.value(QStringLiteral("color"));
-        // Feiertage liefert bereits das Plasma-Plugin "Feiertage".
-        if (info.name.contains(QStringLiteral("Feiertage"), Qt::CaseInsensitive)) {
+        // Holidays are already provided by the Plasma "Holidays" plugin.
+        if (info.name.contains(QStringLiteral("Feiertage"), Qt::CaseInsensitive) || info.name.contains(QStringLiteral("holiday"), Qt::CaseInsensitive)) {
             continue;
         }
         result.insert(it.key(), info);
@@ -145,7 +148,7 @@ QHash<QString, TbEvents::CalendarInfo> TbEvents::readCalendarInfos(const QString
 
 QString TbEvents::buildIcs(QSqlDatabase &db, const QHash<QString, CalendarInfo> &calendars)
 {
-    // Beschreibung und Ort stehen in cal_properties.
+    // Description and location live in cal_properties.
     QHash<QString, QString> props;
     {
         QSqlQuery q(db);
@@ -158,7 +161,7 @@ QString TbEvents::buildIcs(QSqlDatabase &db, const QHash<QString, CalendarInfo> 
         }
     }
 
-    // Wiederholungsregeln, Ausnahmedaten usw. stehen schon als iCal-Zeilen in cal_recurrence.
+    // Recurrence rules, exception dates etc. are already stored as iCal lines in cal_recurrence.
     QHash<QString, QStringList> recurrence;
     {
         QSqlQuery q(db);
@@ -177,7 +180,7 @@ QString TbEvents::buildIcs(QSqlDatabase &db, const QHash<QString, CalendarInfo> 
 
     QString ics;
     ics.reserve(4 * 1024 * 1024);
-    ics += QStringLiteral("BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//tbcalendarplugin//DE\r\n");
+    ics += QStringLiteral("BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//tbcalendarplugin//EN\r\n");
 
     QSqlQuery q(db);
     q.exec(QStringLiteral("SELECT cal_id, id, title, flags, event_start, event_end, event_start_tz, event_end_tz, "
@@ -234,7 +237,7 @@ bool TbEvents::reload(const QString &cachePath)
     QFile::remove(dst);
     QFile::remove(dst + QStringLiteral("-wal"));
     QFile::remove(dst + QStringLiteral("-shm"));
-    // Kopie samt WAL, denn Thunderbird hält neue Termine oft nur im Write-Ahead-Log.
+    // Copy including the WAL, since Thunderbird often keeps new events only in the write-ahead log.
     if (!QFile::copy(cachePath, dst)) {
         return false;
     }

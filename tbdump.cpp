@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 tbcalendarplugin contributors
+// SPDX-License-Identifier: GPL-3.0-only
+
 #include <QCoreApplication>
 #include <QElapsedTimer>
 #include <QTextStream>
@@ -6,7 +9,7 @@
 
 #include "tbevents.h"
 
-// Testprogramm: tbdump [von bis]   (Format YYYY-MM-DD, Standard: heute bis heute+14)
+// Test tool: tbdump [from to]   (format YYYY-MM-DD, default: today to today+14)
 int main(int argc, char **argv)
 {
     QCoreApplication app(argc, argv);
@@ -23,7 +26,7 @@ int main(int argc, char **argv)
     QElapsedTimer timer;
     timer.start();
     const auto result = events.eventsFor(from, to);
-    out << "Ladezeit: " << timer.elapsed() << " ms, " << result.size() << " Einträge\n";
+    out << "Load time: " << timer.elapsed() << " ms, " << result.size() << " entries\n";
 
     QList<QDate> days = result.uniqueKeys();
     std::sort(days.begin(), days.end());
@@ -32,7 +35,7 @@ int main(int argc, char **argv)
         std::sort(list.begin(), list.end(), [](const auto &a, const auto &b) { return a.startDateTime() < b.startDateTime(); });
         for (const auto &e : std::as_const(list)) {
             out << d.toString(Qt::ISODate) << "  "
-                << (e.isAllDay() ? QStringLiteral("ganztägig  ") : e.startDateTime().time().toString(QStringLiteral("HH:mm")) + QStringLiteral("-")
+                << (e.isAllDay() ? QStringLiteral("all-day    ") : e.startDateTime().time().toString(QStringLiteral("HH:mm")) + QStringLiteral("-")
                         + e.endDateTime().time().toString(QStringLiteral("HH:mm")) + QStringLiteral("  "))
                 << e.title() << "  [" << e.eventColor() << "]";
             if (!e.location().isEmpty()) {

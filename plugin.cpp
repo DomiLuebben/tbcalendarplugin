@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 tbcalendarplugin contributors
+// SPDX-License-Identifier: GPL-3.0-only
+
 #include <QDebug>
 #include <QtConcurrent>
 
@@ -5,8 +8,8 @@
 
 #include "tbevents.h"
 
-// Zeigt Termine aus dem Thunderbird-Kalender-Cache in der Plasma-Uhr. Das Laden läuft in einem
-// eigenen Thread, damit Plasmashell nie auf diese Daten warten muss.
+// Shows events from Thunderbird's calendar cache in the Plasma clock. Loading runs in its own
+// thread so that plasmashell never has to wait for this data.
 class ThunderbirdEventsPlugin : public CalendarEvents::CalendarEventsPlugin
 {
     Q_OBJECT
@@ -27,7 +30,7 @@ public:
                 return;
             }
             const auto events = self->m_events.eventsFor(startDate, endDate);
-            qInfo().noquote() << "thunderbirdevents:" << events.size() << "Einträge für" << startDate.toString(Qt::ISODate) << "bis" << endDate.toString(Qt::ISODate);
+            qInfo().noquote() << "thunderbirdevents:" << events.size() << "events for" << startDate.toString(Qt::ISODate) << "to" << endDate.toString(Qt::ISODate);
             QMetaObject::invokeMethod(
                 qApp,
                 [self, events] {
