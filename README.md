@@ -2,8 +2,8 @@
 
 A Plasma 6 calendar plugin that reads the events Thunderbird keeps in
 `calendar-data/cache.sqlite` (read-only, on a copy) and shows them in the digital clock's
-calendar popup. No Akonadi, no login. Loading runs in its own thread, so plasmashell never
-waits for it.
+calendar popup. No Akonadi, no login. Events are delivered synchronously, because Plasma does not
+remove duplicates when a plugin answers late (the events would show up twice).
 
 Supports recurring events and exceptions, time zones (including DST), all-day events,
 locations and the calendar colours from Thunderbird.

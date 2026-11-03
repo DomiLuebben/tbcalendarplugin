@@ -2,14 +2,19 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #include <QDebug>
-#include <QtConcurrent>
 
 #include <CalendarEvents/CalendarEventsPlugin>
 
 #include "tbevents.h"
 
-// Shows events from Thunderbird's calendar cache in the Plasma clock. Loading runs in its own
-// thread so that plasmashell never has to wait for this data.
+// Shows events from Thunderbird's calendar cache in the Plasma clock.
+//
+// The result is emitted synchronously from inside loadEventsForDateRange(). Plasma's DaysModel
+// clears its events right before it asks the plugins and then appends whatever dataReady()
+// delivers, without removing duplicates. Every model receives every emission, so an answer that
+// arrives later than another model's request ends up in the calendar twice. Reloading the cache
+// only takes about 100 ms and only happens when Thunderbird has changed it, so staying
+// synchronous is the safe choice.
 class ThunderbirdEventsPlugin : public CalendarEvents::CalendarEventsPlugin
 {
     Q_OBJECT
@@ -24,22 +29,9 @@ public:
 
     void loadEventsForDateRange(const QDate &startDate, const QDate &endDate) override
     {
-        QPointer<ThunderbirdEventsPlugin> self(this);
-        (void)QtConcurrent::run([self, startDate, endDate] {
-            if (!self) {
-                return;
-            }
-            const auto events = self->m_events.eventsFor(startDate, endDate);
-            qInfo().noquote() << "thunderbirdevents:" << events.size() << "events for" << startDate.toString(Qt::ISODate) << "to" << endDate.toString(Qt::ISODate);
-            QMetaObject::invokeMethod(
-                qApp,
-                [self, events] {
-                    if (self) {
-                        Q_EMIT self->dataReady(events);
-                    }
-                },
-                Qt::QueuedConnection);
-        });
+        const auto events = m_events.eventsFor(startDate, endDate);
+        qInfo().noquote() << "thunderbirdevents:" << events.size() << "events for" << startDate.toString(Qt::ISODate) << "to" << endDate.toString(Qt::ISODate);
+        Q_EMIT dataReady(events);
     }
 
 private:
