@@ -1,0 +1,9 @@
+{
+    "KPlugin": {
+        "Description": "Zeigt Termine aus dem Kalender-Cache von Thunderbird",
+        "Description[de]": "Zeigt Termine aus dem Kalender-Cache von Thunderbird",
+        "Icon": "view-calendar",
+        "Name": "Thunderbird-Termine",
+        "Name[de]": "Thunderbird-Termine"
+    }
+}
