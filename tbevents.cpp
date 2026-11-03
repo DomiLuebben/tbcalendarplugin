@@ -87,11 +87,19 @@ TbEvents::TbEvents() = default;
 
 QString TbEvents::findCachePath()
 {
-    const QDir root(QDir::homePath() + QStringLiteral("/.config/thunderbird"));
+    // Thunderbird keeps its profiles in ~/.thunderbird (classic), ~/.config/thunderbird (XDG)
+    // or inside the Flatpak sandbox, depending on version and packaging.
+    const QString home = QDir::homePath();
+    const QStringList roots = {home + QStringLiteral("/.thunderbird"),
+                               home + QStringLiteral("/.config/thunderbird"),
+                               home + QStringLiteral("/.var/app/org.mozilla.Thunderbird/.thunderbird")};
     QString best;
     QDateTime bestTime;
-    const auto profiles = root.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
-    for (const QFileInfo &profile : profiles) {
+    QFileInfoList profiles;
+    for (const QString &rootPath : roots) {
+        profiles += QDir(rootPath).entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
+    }
+    for (const QFileInfo &profile : std::as_const(profiles)) {
         const QFileInfo cache(profile.absoluteFilePath() + QStringLiteral("/calendar-data/cache.sqlite"));
         if (!cache.exists()) {
             continue;
