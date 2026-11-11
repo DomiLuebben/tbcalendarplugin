@@ -92,7 +92,8 @@ QString TbEvents::findCachePath()
     const QString home = QDir::homePath();
     const QStringList roots = {home + QStringLiteral("/.thunderbird"),
                                home + QStringLiteral("/.config/thunderbird"),
-                               home + QStringLiteral("/.var/app/org.mozilla.Thunderbird/.thunderbird")};
+                               home + QStringLiteral("/.var/app/org.mozilla.Thunderbird/.thunderbird"),
+                               home + QStringLiteral("/.var/app/eu.betterbird.Betterbird/.thunderbird")};
     QString best;
     QDateTime bestTime;
     QFileInfoList profiles;
